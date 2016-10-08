@@ -1,0 +1,7 @@
+import os
+
+CLARIFAI_APP_ID = "-twKcoSu0xkRCq8HET2KifyNid-QTNIy19cafkUY"
+CLARIFAI_APP_SECRET = "6Q-aSKltdpmgmgWAFCuTtd2wm-oPrcGYutHWbAaX"
+
+os.environ["CLARIFAI_APP_ID"] = CLARIFAI_APP_ID
+os.environ["CLARIFAI_APP_SECRET"] = CLARIFAI_APP_SECRET
