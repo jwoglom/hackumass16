@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+window.addEventListener("load", function() {
+
+    var video = document.querySelector("#videl");
+    var imgs = document.querySelector("#imgs");
+    var canvas = document.createElement("canvas");
+    var width, height;
+    window.navigator = window.navigator || {};
+    navigator.getUserMedia = (navigator.getUserMedia ||
+                              navigator.webkitGetUserMedia ||
+                              navigator.mozGetUserMedia ||
+                              null);
+    if(navigator.getUserMedia) {
+        var createSrc = window.URL ? window.URL.createObjectURL : function(stream) {return stream;};
+        navigator.getUserMedia({
+            video: true,
+            audio: true
+        }, function(stream) {
+            vidstream = stream;
+            video.src = createSrc(vidstream);
+            video.play();
+        }, function(err) {
+            console.error("getUserMedia", err);
+        })
+    }
+
+    var desiredWidth = 480;
+
+    video.addEventListener('canplay', function(ev) {
+        width = desiredWidth;
+        height = video.videoHeight / (video.videoWidth / desiredWidth);
+
+        video.setAttribute('width', width);
+        video.setAttribute('height', height);
+        canvas.setAttribute('width', width);
+        canvas.setAttribute('height', height);
+
+    });
+
+    takePic = function() {
+        if(width && height) {
+            var context = canvas.getContext('2d');
+            canvas.width = width;
+            canvas.height = height;
+            context.drawImage(video, 0, 0, width, height);
+            var data = canvas.toDataURL('image/png');
+            return data;
+        }
+    }
+
+    showPic = function(data) {
+        var e = document.createElement('img');
+        e.src = data;
+        imgs.appendChild(e);
+    }
+
+});
+
+</script>
+
+
+<video id="videl"></video>
+<br />
+<br />
+<button onclick="showPic(takePic())">Take Photo</button>
+<br />
+<div id="imgs"></script>
+
+{% endblock %}
