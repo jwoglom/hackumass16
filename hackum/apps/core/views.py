@@ -11,6 +11,8 @@ from binascii import a2b_base64
 from clarifai.client import ClarifaiApi
 from .jqueue import JQueue
 
+from functools import reduce
+
 global queue
 global statResult
 
@@ -82,14 +84,13 @@ def getKeywords(data):
 
 # List[Json] -> Map[Key, (Mean, Std)]
 def calculate(queue):
-    eps = 5;
-    intersectKeys = {} # This is incorrect
+    eps = 2;
     if(queue.size() > eps):
-        mapped = map(getKeywords,queue.toList())
-        intersectKeys = reduce(lambda x, y: (x[0] & y[0]), mapped)
+        mapped = list(map(getKeywords, queue.toList()))
+        intersectKeys = reduce(lambda x,y: x & y, map(lambda x: x[0], mapped))
         probsDict = map(lambda k: (k,np.array([l[1][k] for l in mapped])), intersectKeys)
         queue.pop()
-        return dict(map(lambda k: (k[0], (np.mean(k[1]), np.std(k[1]))),probsDict))
+        return dict(map(lambda k: (k[0], (np.mean(k[1]), np.std(k[1]))), probsDict))
     else:
         return None
 
@@ -100,7 +101,7 @@ def top():
         res = calculate(queue)
         if(res != None):
             statResult.push(res)
-            print("pushed")
+            print(res)
         time.sleep(0.05)
 
 calcThread = Thread(target=top)
