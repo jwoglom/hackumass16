@@ -30,5 +30,5 @@ def top():
     while(True):
         res = calculate(queue)
         if(res != None):
-            
+            statResult.push(res)            
         time.sleep(0.05)
