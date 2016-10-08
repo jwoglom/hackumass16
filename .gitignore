@@ -92,3 +92,8 @@ ENV/
 *.sqlite3
 *.sqlite
 *.swp
+
+hackum/bin
+hackum/include
+hackum/pip-selfcheck.json
+
