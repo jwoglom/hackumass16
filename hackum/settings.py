@@ -44,7 +44,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'hackum'
+    'hackum',
+    'hackum.apps.core'
 )
 
 MIDDLEWARE_CLASSES = (

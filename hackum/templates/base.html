@@ -1,0 +1,36 @@
+{% load staticfiles %}
+<!doctype html>
+<html>
+<head>
+    <title>{% block title %}HackUMass{% endblock %}</title>
+
+    {% block meta %}{% endblock %}
+
+    {% block css %}
+
+    {% endblock %}
+
+    {% block js %}
+
+    {% endblock %}
+</head>
+
+<body{% block bodytag %}{% endblock %}>
+{% block body %}
+    <header>
+    {% block header %}
+    {% endblock %}
+    </header>
+
+    {% block content %}
+
+    {% endblock %}
+
+    <footer>
+    {% block footer %}
+    {% endblock %}
+    </footer>
+
+{% endblock %}
+</body>
+</html>
