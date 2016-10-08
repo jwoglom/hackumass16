@@ -1,6 +1,7 @@
 import tempfile
 from binascii import a2b_base64
 
+from channels import Group
 from channels.handler import AsgiHandler
 from channels.sessions import channel_session
 
@@ -16,17 +17,22 @@ def http_consumer(message):
 
 @channel_session
 def ws_connect(message):
-    pass
+    prefix, label = message['path'].strip('/').split('/')
+    message.channel_session['room'] = label    
+    Group('chat-'+label, channel_layer=message.channel_layer).add(message.reply_channel)
 
 @channel_session
 def ws_receive(message):
+    label = message.channel_session['room']
     if 'b64' in message:
         b64_data = message['b64']
         bin_data = a2b_base64(b64_data)
         file = tempfile.TemporaryFile()
         file.write(bin_data)
         resp = process_file(file)
+        Group('chat-'+label, channel_layer=message.channel_layer).send({"response": resp})
 
 @channel_session
 def ws_disconnect(message):
-    pass
+    label = message.channel_session['room']
+    Group('chat-'+label, channel_layer=message.channel_layer).discard(message.reply_channel)
