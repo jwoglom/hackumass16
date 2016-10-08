@@ -1,3 +1,4 @@
+import time
 import tempfile
 import json
 from binascii import a2b_base64
@@ -25,6 +26,7 @@ def ws_connect(message):
 
 @channel_session
 def ws_receive(message):
+    t0 = time.time()
     label = message.channel_session['room']
     print("WSreceive", label, message['text'][:100])
     js = json.loads(message['text'])
@@ -33,7 +35,9 @@ def ws_receive(message):
         b64_data = js['b64']
         resp = process_file_b64(b64_data)
         print(resp)
-        Group('chat-'+label, channel_layer=message.channel_layer).send({"response": "test"})
+        t1 = time.time()
+        resp["timing"] = [t0, t1]
+        Group('chat-'+label, channel_layer=message.channel_layer).send({"text": json.dumps({"response": resp})})
 
 @channel_session
 def ws_disconnect(message):
