@@ -4,7 +4,7 @@ import time
 import base64
 from clarifai_helper import *
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(-1)
 runThrough = True
 
 while(runThrough):
