@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 {% block title %}Home - {{ block.super }}{% endblock %}
 
 {% block css %}
@@ -7,6 +8,8 @@
 
 {% block js %}
 {{ block.super }}
+    
+    <script type="text/javascript" src="{% static 'reconnecting-websocket.min.js' %}"></script>
     <script type="text/javascript">
 window.addEventListener("load", function() {
 
@@ -46,6 +49,15 @@ window.addEventListener("load", function() {
 
     });
 
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    chatsock = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + "/chat/" + parseInt(+new Date()));
+    chatsock.open();
+    chatsock.onmessage = function(message) {
+        console.debug(message);
+        var data = JSON.parse(message.data)
+        parseResp(data["response"]);
+    };
+
     takePic = function() {
         if(width && height) {
             var context = canvas.getContext('2d');
@@ -71,6 +83,7 @@ window.addEventListener("load", function() {
 
     var apiEndpoint = "{% url 'api' %}";
 
+    var send_format = 'websocket';
     sendPic = function() {
         st = +new Date/1000;
         var pic = takePic();
@@ -79,18 +92,24 @@ window.addEventListener("load", function() {
         var fmt = fmt.split(";base64,");
         var b64 = fmt[1];
         fmt = fmt[0];
-        var blob = b64toblob(b64, fmt);
-        console.debug(blob);
-        var formData = new FormData();
-        formData.append('file', blob);
-        console.info(formData);
-        //showPic(pic);
-        showTxt("pictureCap");
-        filePOST(apiEndpoint, formData, function(data) {
-            var jdata = JSON.parse(data);
-            console.info(jdata);
-            parseResp(jdata);
-        });
+        
+        if(send_format == 'postform') {
+            var blob = b64toblob(b64, fmt);
+            console.debug(blob);
+            var formData = new FormData();
+            formData.append('file', blob);
+            console.info(formData);
+            //showPic(pic);
+            showTxt("pictureCap");
+            filePOST(apiEndpoint, formData, function(data) {
+                var jdata = JSON.parse(data);
+                console.info(jdata);
+                parseResp(jdata);
+            });
+        } else if(send_format == 'websocket') {
+            console.info("Sending "+b64.length)
+            chatsock.send(JSON.stringify({'b64': b64}))
+        }
     }
 
     timeDiff = function() {
