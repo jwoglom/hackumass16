@@ -58,6 +58,12 @@ window.addEventListener("load", function() {
         imgs.appendChild(e);
     }
 
+    showTxt = function(txt) {
+        var p = document.createElement('p');
+        p.innerHTML = txt;
+        imgs.appendChild(p);
+    }
+
     var apiEndpoint = "{% url 'api' %}";
 
     sendPic = function() {
@@ -75,7 +81,25 @@ window.addEventListener("load", function() {
         filePOST(apiEndpoint, formData, function(data) {
             var jdata = JSON.parse(data);
             console.info(jdata);
+            parseResp(jdata);
         });
+    }
+
+    parseResp = function(data) {
+        if(!data || data["status_code"] != "OK") {
+            return showTxt("Error");
+        }
+        var ares = data["results"];
+        console.log(ares);
+        for(var i=0; i<ares.length; i++) {
+            var txt = "";
+            var tags = ares[i]["result"]["tag"];
+            for(var j=0; j<tags["classes"].length; j++) {
+                var p = (tags["probs"][j] - 0.5) * 2;
+                txt += "<span style='opacity: " + p + ";'>" + tags["classes"][j] + "</span> ";
+            }
+            showTxt(txt);
+        }
     }
 
 });
@@ -86,7 +110,7 @@ window.addEventListener("load", function() {
 
 
 
-<video id="videl"></video>
+<video id="videl" muted></video>
 <br />
 <br />
 <button onclick="sendPic()">Take Photo</button>
