@@ -24,7 +24,7 @@ def api_view(request):
         t0 = time.time()
         if "uri" in request.POST:
             uri_data = request.POST.get("uri")
-            b64_data = uri_data.split("data:image/png,base64;")
+            b64_data = uri_data.split("data:image/jpeg,base64;")
             if len(b64_data) > 1:
                 b64_data = b64_data[1]
                 bin_data = a2b_base64(b64_data)
@@ -48,3 +48,12 @@ def api_view(request):
             return JsonResponse(json_resp)
 
     return JsonResponse({"error": "InvalidRequest"})
+
+def process_file(file):
+    print(time.time(), "loadAPI")
+    clarifai_api = ClarifaiApi()
+    print(time.time(), "sendAPI")
+    json_resp = clarifai_api.tag(file)
+    print(time.time(), "doneAPI")
+
+    return json_resp
