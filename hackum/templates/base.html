@@ -3,17 +3,7 @@
 <html>
 <head>
     <title>{% block title %}HackUMass{% endblock %}</title>
-    <style>
-    .box {padding-bottom: 6px; width: 100%; height: 60px; margin-left: 0%; margin-top: 0%; background-color: #696969; display: inline-block; border-radius: 55px;}
-    .box2 {text-align: center; margin-left: 18%; width: 30%; height: 400px; margin-top: 2%; border: 1px black; border-style: solid; display: inline-block; overflow: none;}
-    .box3 {text-align: center; margin-left: 52%; width: 30%; height: 400px; margin-top: -28%; border: 1px black; border-style: solid; overflow: none;}
-    .background {width: 1024px; height: 720px; overflow: hidden;}
-    .video {text-align: center; margin-left: 20%; width: 60%; height: 600px; margin-top: 2%; border: 1px black; border-style: solid; display: inline-block; overflow: none;}
-    h1{font-family: Helvetica; text-align: center;}
-    p {text-align: center; font-size: 14pt; font-family: Helvetica;}
-    body {background-color: #DCDCDC;}
-
-    </style>
+    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
     {% block meta %}{% endblock %}
 
     {% block css %}

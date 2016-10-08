@@ -10,7 +10,12 @@
 {{ block.super }}
 
     <script type="text/javascript" src="{% static 'reconnecting-websocket.min.js' %}"></script>
+    <script src="http://cdn.pubnub.com/pubnub.min.js"></script>
+    <script src="../vendor/d3.v3.js"></script>
+    <script src="../rickshaw.min.js"></script>
+    <script src="../src/js/Rickshaw.Fixtures.PubNub.js"></script>
     <script type="text/javascript">
+
 window.addEventListener("load", function() {
 
     var video = document.querySelector("#videl");
@@ -156,15 +161,61 @@ window.addEventListener("load", function() {
 
     <video id="videl" muted></video>
 
-<div class="box2">
-<p>Relevant Tags</p></div>
-<div class="box3">
-<p>Analysis</p>
-<button onclick="sendPic()">Take Photo</button>
+
+<br><button onclick="sendPic()">Take Photo</button></div>
 <br />
 <div id="imgs"></script>
-</div>
-</div>
+</div><br><br>
+
+<div id="chart"></div>
+
+<script>
+var graph = new Rickshaw.Graph( {
+    element: document.getElementById("#chart"),
+    width: 900,
+    height: 500,
+    renderer: 'area',
+    stroke: true,
+    preserve: true,
+    series: [
+        {
+            color: 'steelblue',
+            name: 'Cats',
+            data: []
+        },
+        {
+            color: 'lightblue',
+            name: 'Dogs',
+            data: []
+        }
+    ]
+});
+graph.render();
+
+  new Rickshaw.Fixtures.PubNub({
+    channel: 'rickshaw-channel-1',
+    graph: graph
+    });
+
+    var pubnub = PUBNUB.init({
+    publish_key: 'pub-c-6ad44269-ec32-4425-b952-66272bb854a6',
+    subscribe_key: 'sub-c-adf4c468-8d92-11e6-b5db-02ee2ddab7fe'
+    });
+
+    setInterval(function(){
+    pubnub.publish({
+    channel: 'rickshaw-channel-1',
+    message: {
+      y: [
+        Math.random() * 99, 
+        Math.random() * 99
+      ],
+      x: new Date().getTime()
+    }
+  })
+}, 1000);
+</script>
+
 
 
 {% endblock %}
