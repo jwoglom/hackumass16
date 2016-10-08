@@ -2,17 +2,18 @@ import numpy as np
 import cv2
 import time
 import base64
-#from clarifai_helper import *
-from clarifai.client import ClarifaiApi
+from clarifai_helper import *
 
 cap = cv2.VideoCapture(0)
+runThrough = True
 
-while(True):
-    time.sleep(0.2)
+while(runThrough):
     frame = cap.read()[1]
-    cv2.imshow('frame',frame)
     cnt = cv2.imencode('.png',frame)[1]
-    print(base64.b64encode(cnt))
+    #print(clarifai_b64(base64.b64encode(cnt)))
+    print(clarifai_req(cnt))
+    time.sleep(0.2)
+    runThrough = False
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
