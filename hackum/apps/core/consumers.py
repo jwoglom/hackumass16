@@ -33,7 +33,7 @@ def ws_receive(message):
         b64_data = js['b64']
         resp = process_file_b64(b64_data)
         print(resp)
-        Group('chat-'+label, channel_layer=message.channel_layer).send({"response": resp})
+        Group('chat-'+label, channel_layer=message.channel_layer).send({"response": "test"})
 
 @channel_session
 def ws_disconnect(message):

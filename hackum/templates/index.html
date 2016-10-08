@@ -83,7 +83,7 @@ window.addEventListener("load", function() {
 
     var apiEndpoint = "{% url 'api' %}";
 
-    var send_format = 'websocket';
+    var send_format = location.indexOf('use_websocket') != -1 ? 'websocket' : 'postform';
     sendPic = function() {
         st = +new Date/1000;
         var pic = takePic();
