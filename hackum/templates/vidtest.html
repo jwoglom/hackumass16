@@ -62,8 +62,17 @@ window.addEventListener("load", function() {
 
     sendPic = function() {
         var pic = takePic();
+        var fmt = pic.split("data:")[1];
+        var fmt = fmt.split(";base64,");
+        var b64 = fmt[1];
+        fmt = fmt[0];
+        var blob = b64toblob(b64, fmt);
+        console.debug(blob);
+        var formData = new FormData();
+        formData.append('file', blob);
+        console.info(formData);
         showPic(pic);
-        httpPOST(apiEndpoint, {"pic": pic}, function(data) {
+        filePOST(apiEndpoint, formData, function(data) {
             var jdata = JSON.parse(data);
             console.info(jdata);
         });
