@@ -84,7 +84,7 @@ def getKeywords(data):
 
 # List[Json] -> Map[Key, (Mean, Std)]
 def calculate(queue):
-    eps = 2;
+    eps = 2
     if(queue.size() > eps):
         mapped = list(map(getKeywords, queue.toList()))
         intersectKeys = reduce(lambda x,y: x & y, map(lambda x: x[0], mapped))

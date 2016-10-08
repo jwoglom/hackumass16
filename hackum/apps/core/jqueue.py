@@ -8,4 +8,4 @@ class JQueue:
     def size(self):
         return len(self.queue)
     def toList(self):
-        return self.queue;
+        return self.queue
