@@ -10,10 +10,7 @@
 {{ block.super }}
 
     <script type="text/javascript" src="{% static 'reconnecting-websocket.min.js' %}"></script>
-    <script src="http://cdn.pubnub.com/pubnub.min.js"></script>
-    <script src="../vendor/d3.v3.js"></script>
-    <script src="../rickshaw.min.js"></script>
-    <script src="../src/js/Rickshaw.Fixtures.PubNub.js"></script>
+    <script type="text/javascript" src="{% static 'canvasjs.min.js' %}"></script>
     <script type="text/javascript">
 
 window.addEventListener("load", function() {
@@ -147,6 +144,46 @@ window.addEventListener("load", function() {
     }
 
 });
+
+
+    window.onload = function () {
+
+        var dps = []; // dataPoints
+        $.getJSON("url", function(data) {  
+            $.each(data, function(key, value){
+                dp.push({x: parseInt(value[0]), y: parseInt(value[1])});
+            });
+
+        var chart = new CanvasJS.Chart("chartContainer",{
+            title :{
+                text: "Real-time graph"
+            },          
+            data: [{
+                type: "line",
+                dataPoints: dps 
+            }]
+        });
+        chart.render();
+        updateChart();
+
+        });
+
+        var updateChart {
+            $.getJSON("url", function(data) {
+                $.each(data, function(key, value) {
+                    dp.push({
+                        x: parseInt(value[0]),
+                        y: parseInt(value[1])
+                    });
+                });
+
+                chart.render();
+                setTimeout(function(){updateChart()}, 1000);
+            });
+        }
+    }  
+    
+    
 </script>
 {% endblock %}
 
@@ -166,55 +203,7 @@ window.addEventListener("load", function() {
 <br />
 <div id="imgs"></script>
 </div><br><br>
-
-<div id="chart"></div>
-
-<script>
-var graph = new Rickshaw.Graph( {
-    element: document.getElementById("#chart"),
-    width: 900,
-    height: 500,
-    renderer: 'area',
-    stroke: true,
-    preserve: true,
-    series: [
-        {
-            color: 'steelblue',
-            name: 'Cats',
-            data: []
-        },
-        {
-            color: 'lightblue',
-            name: 'Dogs',
-            data: []
-        }
-    ]
-});
-graph.render();
-
-  new Rickshaw.Fixtures.PubNub({
-    channel: 'rickshaw-channel-1',
-    graph: graph
-    });
-
-    var pubnub = PUBNUB.init({
-    publish_key: 'pub-c-6ad44269-ec32-4425-b952-66272bb854a6',
-    subscribe_key: 'sub-c-adf4c468-8d92-11e6-b5db-02ee2ddab7fe'
-    });
-
-    setInterval(function(){
-    pubnub.publish({
-    channel: 'rickshaw-channel-1',
-    message: {
-      y: [
-        Math.random() * 99, 
-        Math.random() * 99
-      ],
-      x: new Date().getTime()
-    }
-  })
-}, 1000);
-</script>
+<div id="chartContainer" style="height: 300px; width:60%; color:#DCDCDC;"></div>
 
 
 
