@@ -49,11 +49,12 @@ def api_view(request):
 
     return JsonResponse({"error": "InvalidRequest"})
 
-def process_file(file):
+def process_file_b64(b64):
     print(time.time(), "loadAPI")
     clarifai_api = ClarifaiApi()
     print(time.time(), "sendAPI")
-    json_resp = clarifai_api.tag(file)
+    data = {'encoded_data': b64}
+    json_resp = clarifai_api._base64_encoded_data_op(data, 'tag')
     print(time.time(), "doneAPI")
 
     return json_resp

@@ -6,7 +6,7 @@ from channels import Group
 from channels.handler import AsgiHandler
 from channels.sessions import channel_session
 
-from .views import process_file
+from .views import process_file_b64
  
 def http_consumer(message):
     # Make standard HTTP response - access ASGI path attribute directly
@@ -31,11 +31,8 @@ def ws_receive(message):
     print(len(js['b64']))
     if 'b64' in js:
         b64_data = js['b64']
-        bin_data = a2b_base64(b64_data)
-        open("/tmp/bin", "wb").write(bin_data)
-        file = tempfile.TemporaryFile()
-        file.write(bin_data)
-        resp = process_file(file)
+        resp = process_file_b64(b64_data)
+        print(resp)
         Group('chat-'+label, channel_layer=message.channel_layer).send({"response": resp})
 
 @channel_session
