@@ -30,9 +30,7 @@ def ws_receive(message):
     global statResult
     t0 = time.time()
     label = message.channel_session['room']
-    #print("WSreceive", label, message['text'][:100])
     js = json.loads(message['text'])
-    #print(len(js['b64']))
     if 'b64' in js:
         b64_data = js['b64']
         resp = process_file_b64(b64_data, js['classes_selection'])
@@ -41,7 +39,6 @@ def ws_receive(message):
         if(statResult.size() > eps):
             Group('chat-'+label, channel_layer=message.channel_layer).send({"text": json.dumps({"response": statResult.peek()})})
             statResult.pop()
-        #Group('chat-'+label, channel_layer=message.channel_layer).send({"text": json.dumps({"response": resp})})
 
 @channel_session
 def ws_disconnect(message):

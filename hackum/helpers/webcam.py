@@ -10,7 +10,6 @@ runThrough = True
 while(runThrough):
     frame = cap.read()[1]
     cnt = cv2.imencode('.png',frame)[1]
-    #print(clarifai_b64(base64.b64encode(cnt)))
     print(clarifai_req(cnt))
     time.sleep(0.2)
     runThrough = False
