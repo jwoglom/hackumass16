@@ -7,8 +7,9 @@ from channels import Group
 from channels.handler import AsgiHandler
 from channels.sessions import channel_session
 
-from .views import process_file_b64
- 
+from .views import process_file_b64,statResult,eps
+from .jqueue import JQueue
+
 def http_consumer(message):
     # Make standard HTTP response - access ASGI path attribute directly
     response = HttpResponse("Hello world! You asked for %s" % message.content['path'])
@@ -26,18 +27,21 @@ def ws_connect(message):
 
 @channel_session
 def ws_receive(message):
+    global statResult
     t0 = time.time()
     label = message.channel_session['room']
-    print("WSreceive", label, message['text'][:100])
+    #print("WSreceive", label, message['text'][:100])
     js = json.loads(message['text'])
-    print(len(js['b64']))
+    #print(len(js['b64']))
     if 'b64' in js:
         b64_data = js['b64']
-        resp = process_file_b64(b64_data)
-        print(resp)
+        resp = process_file_b64(b64_data, js['classes_selection'])
         t1 = time.time()
         resp["timing"] = [t0, t1]
-        Group('chat-'+label, channel_layer=message.channel_layer).send({"text": json.dumps({"response": resp})})
+        if(statResult.size() > eps):
+            Group('chat-'+label, channel_layer=message.channel_layer).send({"text": json.dumps({"response": statResult.peek()})})
+            statResult.pop()
+        #Group('chat-'+label, channel_layer=message.channel_layer).send({"text": json.dumps({"response": resp})})
 
 @channel_session
 def ws_disconnect(message):

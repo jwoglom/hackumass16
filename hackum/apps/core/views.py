@@ -18,6 +18,8 @@ global statResult
 
 queue = JQueue()
 statResult = JQueue()
+global eps
+eps = 2
 
 def index_view(request):
     return render(request, "index.html", {})
@@ -65,14 +67,13 @@ def api_view(request, tags=""):
 
     return JsonResponse({"error": "InvalidRequest"})
 
-def process_file_b64(b64):
-    print(time.time(), "loadAPI")
+def process_file_b64(b64, classes):
     clarifai_api = ClarifaiApi()
-    print(time.time(), "sendAPI")
     data = {'encoded_data': b64}
+    if(classes != ""):
+        data = {'encoded_data': b64, 'select_classes': classes}
     json_resp = clarifai_api._base64_encoded_data_op(data, 'tag')
-    print(time.time(), "doneAPI")
-
+    queue.push(json_resp)
     return json_resp
 
 # json object -> Iterator[Tag, Prob]
@@ -87,7 +88,7 @@ def getKeywords(data):
 
 # List[Json] -> Map[Key, (Mean, Std)]
 def calculate(queue):
-    eps = 2
+    global eps
     if(queue.size() > eps):
         mapped = list(map(getKeywords, queue.toList()))
         intersectKeys = reduce(lambda x,y: x & y, map(lambda x: x[0], mapped))
@@ -104,7 +105,6 @@ def top():
         res = calculate(queue)
         if(res != None):
             statResult.push(res)
-            print(res)
         time.sleep(0.05)
 
 calcThread = Thread(target=top)

@@ -20,7 +20,7 @@ window.addEventListener("load", function() {
             video.src = createSrc(vidstream);
             video.play();
         }, function(err) {
-            console.error("getUserMedia", err);
+            //console.error("getUserMedia", err);
         })
     }
 
@@ -41,10 +41,11 @@ window.addEventListener("load", function() {
     chatsock = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + "/chat/" + parseInt(+new Date()));
     chatsock.open();
     chatsock.onmessage = function(message) {
-        console.debug(message);
-        var data = JSON.parse(message.data)
+        //console.debug(message);
+        var data = JSON.parse(message.data);
+        //alert(data["response"]["desk"][0]);
         parseResp(data["response"]);
-    };
+    }
 
     takePic = function() {
         if(width && height) {
@@ -69,8 +70,9 @@ window.addEventListener("load", function() {
         imgs.appendChild(p);
     }
 
-    var send_format = location.href.indexOf('use_websocket') != -1 ? 'websocket' : 'postform';
-    sendPic = function() {
+    var send_format = "websocket";
+
+    sendPic = function(classeslist) {
         st = +new Date/1000;
         var pic = takePic();
         pt = +new Date/1000;
@@ -79,23 +81,25 @@ window.addEventListener("load", function() {
         var b64 = fmt[1];
         fmt = fmt[0];
 
-        if(send_format == 'postform') {
+        chatsock.send(JSON.stringify({'b64': b64, 'classes_selection': classeslist}));
+
+        /*if(send_format == 'postform') {
             var blob = b64toblob(b64, fmt);
-            console.debug(blob);
+            //console.debug(blob);
             var formData = new FormData();
             formData.append('file', blob);
-            console.info(formData);
+            //console.info(formData);
             //showPic(pic);
             showTxt("pictureCap");
             filePOST(apiEndpoint, formData, function(data) {
                 var jdata = JSON.parse(data);
-                console.info(jdata);
+                //console.info(jdata);
                 parseResp(jdata);
             });
         } else if(send_format == 'websocket') {
-            console.info("Sending "+b64.length)
-            chatsock.send(JSON.stringify({'b64': b64}))
-        }
+            //console.info("Sending "+b64.length)
+
+        }*/
     }
 
     timeDiff = function() {
@@ -105,34 +109,36 @@ window.addEventListener("load", function() {
     }
 
     parseResp = function(data) {
-        if(!data || data["status_code"] != "OK") {
-            return showTxt("Error");
-        }
-        var now = +new Date/1000;
-        var tim = [pt-st, data["timing"][0]-pt, data["timing"][1]-data["timing"][0], now-data["timing"][1]];
-        showTxt("sendPic: "+tim[0]);
-        showTxt("netlag: "+tim[1]);
-        showTxt("Clarifi: "+tim[2]);
-        showTxt("parseResp: "+tim[3]);
-        showTxt("overall: "+(now-st));
-        var ares = data["results"];
-        var data = [];
+        // var now = +new Date/1000;
+        // var tim = [pt-st, data["timing"][0]-pt, data["timing"][1]-data["timing"][0], now-data["timing"][1]];
+        // showTxt("sendPic: "+tim[0]);
+        // showTxt("netlag: "+tim[1]);
+        // showTxt("Clarifi: "+tim[2]);
+        // showTxt("parseResp: "+tim[3]);
+        // showTxt("overall: "+(now-st));
+        // var ares = data["results"];
+        // var data = [];
         var wordList = [];
         var weightsList = [];
-        console.log(ares);
-        var res = ares[0];
-            var txt = "";
-            var tags = res["result"]["tag"];
-            for(var j=0; j<tags["classes"].length; j++) {
-                var p = (tags["probs"][j] - 0.5) * 2;
-                wordList.push(tags["classes"][j]);
-                weightsList.push(tags["probs"][j]);
-                txt += "<span style='opacity: " + p + ";'>" + tags["classes"][j] + "</span> ";
-                data.push([tags["classes"][j], tags["probs"][j]]);
-            }
-            showTxt(txt);
-        console.info(data);
+        for(var feature in data) {
+          wordList.push(feature);
+          weightsList.push(data[feature][0]);
+        }
+        // console.log(ares);
+        // var res = ares[0];
+        //     var txt = "";
+        //     var tags = res["result"]["tag"];
+        //     for(var j=0; j<tags["classes"].length; j++) {
+        //         var p = (tags["probs"][j] - 0.5) * 2;
+        //         wordList.push(tags["classes"][j]);
+        //         weightsList.push(tags["probs"][j]);
+        //         txt += "<span style='opacity: " + p + ";'>" + tags["classes"][j] + "</span> ";
+        //         data.push([tags["classes"][j], tags["probs"][j]]);
+        //     }
+        //     showTxt(txt);
+        // console.info(data);
         updateWordCloud(wordList, weightsList);
+        updateResultsList(wordList, weightsList);
     }
 
 });

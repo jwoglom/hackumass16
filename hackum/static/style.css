@@ -21,3 +21,6 @@
   padding-left: 2em;
   padding-right: 2em;
 }
+.canvasjs-chart-credit {
+   display: none !important;
+}
