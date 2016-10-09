@@ -117,17 +117,22 @@ window.addEventListener("load", function() {
         showTxt("overall: "+(now-st));
         var ares = data["results"];
         var data = [];
+        var wordList = [];
+        var weightsList = [];
         console.log(ares);
         var res = ares[0];
             var txt = "";
             var tags = res["result"]["tag"];
             for(var j=0; j<tags["classes"].length; j++) {
                 var p = (tags["probs"][j] - 0.5) * 2;
+                wordList.push(tags["classes"][j]);
+                weightsList.push(tags["probs"][j]);
                 txt += "<span style='opacity: " + p + ";'>" + tags["classes"][j] + "</span> ";
                 data.push([tags["classes"][j], tags["probs"][j]]);
             }
             showTxt(txt);
         console.info(data);
+        updateWordCloud(wordList, weightsList);
     }
 
 });

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-{% block title %}Home - {{ block.super }}{% endblock %}
+{% block title %}Atomic - {{ block.super }}{% endblock %}
 
 {% block css %}
 {{ block.super }}
@@ -9,201 +9,185 @@
 {% block js %}
 {{ block.super }}
 
-    <script type="text/javascript" src="{% static 'reconnecting-websocket.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'canvasjs.min.js' %}"></script>
-    <script type="text/javascript">
+<script type="text/javascript" src="{% static 'reconnecting-websocket.min.js' %}"></script>
+<script type="text/javascript">var apiEndpoint = "{% url 'api' %}";</script>
+<script type="text/javascript" src="{% static 'index.js' %}"></script>
+<script type="text/javascript">
 
-window.addEventListener("load", function() {
+window.onload = function () {
 
-    var video = document.querySelector("#videl");
-    var imgs = document.querySelector("#imgs");
-    var canvas = document.createElement("canvas");
-    var width, height;
-    window.navigator = window.navigator || {};
-    navigator.getUserMedia = (navigator.getUserMedia ||
-                              navigator.webkitGetUserMedia ||
-                              navigator.mozGetUserMedia ||
-                              null);
-    if(navigator.getUserMedia) {
-        var createSrc = window.URL ? window.URL.createObjectURL : function(stream) {return stream;};
-        navigator.getUserMedia({
-            video: true,
-            audio: true
-        }, function(stream) {
-            vidstream = stream;
-            video.src = createSrc(vidstream);
-            video.play();
-        }, function(err) {
-            console.error("getUserMedia", err);
-        })
-    }
+    var dps = []; // dataPoints
+    $.getJSON("url", function(data) {
+        $.each(data, function(key, value){
+            dp.push({x: parseInt(value[0]), y: parseInt(value[1])});
+        });
 
-    var desiredWidth = 640;
-
-    video.addEventListener('canplay', function(ev) {
-        width = desiredWidth;
-        height = video.videoHeight / (video.videoWidth / desiredWidth);
-
-        video.setAttribute('width', width);
-        video.setAttribute('height', height);
-        canvas.setAttribute('width', width);
-        canvas.setAttribute('height', height);
+    var chart = new CanvasJS.Chart("chartContainer",{
+        title :{
+            text: "Real-time graph"
+        },
+        data: [{
+            type: "line",
+            dataPoints: dps
+        }]
+    });
+    chart.render();
+    updateChart();
 
     });
 
-    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-    chatsock = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + "/chat/" + parseInt(+new Date()));
-    chatsock.open();
-    chatsock.onmessage = function(message) {
-        console.debug(message);
-        var data = JSON.parse(message.data)
-        parseResp(data["response"]);
-    };
-
-    takePic = function() {
-        if(width && height) {
-            var context = canvas.getContext('2d');
-            canvas.width = width;
-            canvas.height = height;
-            context.drawImage(video, 0, 0, width, height);
-            var data = canvas.toDataURL('image/jpeg', 0.5);
-            return data;
-        }
-    }
-
-    showPic = function(data) {
-        var e = document.createElement('img');
-        e.src = data;
-        imgs.appendChild(e);
-    }
-
-    showTxt = function(txt) {
-        var p = document.createElement('p');
-        p.innerHTML = txt;
-        imgs.appendChild(p);
-    }
-
-    var apiEndpoint = "{% url 'api' %}";
-
-    var send_format = location.href.indexOf('use_websocket') != -1 ? 'websocket' : 'postform';
-    sendPic = function() {
-        st = +new Date/1000;
-        var pic = takePic();
-        pt = +new Date/1000;
-        var fmt = pic.split("data:")[1];
-        var fmt = fmt.split(";base64,");
-        var b64 = fmt[1];
-        fmt = fmt[0];
-
-        if(send_format == 'postform') {
-            var blob = b64toblob(b64, fmt);
-            console.debug(blob);
-            var formData = new FormData();
-            formData.append('file', blob);
-            console.info(formData);
-            //showPic(pic);
-            showTxt("pictureCap");
-            filePOST(apiEndpoint, formData, function(data) {
-                var jdata = JSON.parse(data);
-                console.info(jdata);
-                parseResp(jdata);
-            });
-        } else if(send_format == 'websocket') {
-            console.info("Sending "+b64.length)
-            chatsock.send(JSON.stringify({'b64': b64}))
-        }
-    }
-
-    timeDiff = function() {
-        httpGET(apiEndpoint, "?time=1", function(data) {
-            console.info((+new Date/1000) - parseFloat(data));
-        })
-    }
-
-    parseResp = function(data) {
-        if(!data || data["status_code"] != "OK") {
-            return showTxt("Error");
-        }
-        var now = +new Date/1000;
-        var tim = [pt-st, data["timing"][0]-pt, data["timing"][1]-data["timing"][0], now-data["timing"][1]];
-        showTxt("sendPic: "+tim[0]);
-        showTxt("netlag: "+tim[1]);
-        showTxt("Clarifi: "+tim[2]);
-        showTxt("parseResp: "+tim[3]);
-        showTxt("overall: "+(now-st));
-        var ares = data["results"];
-        console.log(ares);
-        var res = ares[0];
-            var txt = "";
-            var tags = res["result"]["tag"];
-            for(var j=0; j<tags["classes"].length; j++) {
-                var p = (tags["probs"][j] - 0.5) * 2;
-                txt += "<span style='opacity: " + p + ";'>" + tags["classes"][j] + "</span> ";
-            }
-            showTxt(txt);
-    }
-
-});
-
-
-    window.onload = function () {
-
-        var dps = []; // dataPoints
-        $.getJSON("url", function(data) {  
-            $.each(data, function(key, value){
-                dp.push({x: parseInt(value[0]), y: parseInt(value[1])});
-            });
-
-        var chart = new CanvasJS.Chart("chartContainer",{
-            title :{
-                text: "Real-time graph"
-            },          
-            data: [{
-                type: "line",
-                dataPoints: dps 
-            }]
-        });
-        chart.render();
-        updateChart();
-
-        });
-
-        var updateChart {
-            $.getJSON("url", function(data) {
-                $.each(data, function(key, value) {
-                    dp.push({
-                        x: parseInt(value[0]),
-                        y: parseInt(value[1])
-                    });
+    var updateChart {
+        $.getJSON("url", function(data) {
+            $.each(data, function(key, value) {
+                dp.push({
+                    x: parseInt(value[0]),
+                    y: parseInt(value[1])
                 });
-
-                chart.render();
-                setTimeout(function(){updateChart()}, 1000);
             });
-        }
-    }  
-    
-    
+
+            chart.render();
+            setTimeout(function(){updateChart()}, 1000);
+        });
+    }
+}
+
+
 </script>
 {% endblock %}
 
 {% block content %}
 
-<div class = "box">
-<h1>HackUMass</h1>
+
+<nav class="light-blue lighten-1" role="navigation">
+  <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo"><i class="large material-icons">assessment</i>Atomic</a>
+    <ul class="right hide-on-med-and-down">
+      <li><button onclick="sendPic()">Take Photo</button></li>
+      <!--<li><a href="#">Navbar Link</a></li>-->
+    </ul>
+    <ul id="nav-mobile" class="side-nav">
+      <li><a href="#">Video</a></li>
+      <li><a href="#">Graph</a></li>
+      <li><a href="#">Word Plot</a></li>
+      <li><a href="#">Situations</a></li>
+      <li><a href="#">Results</a></li>
+    </ul>
+    <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
+  </div>
+</nav>
+<div class="section no-pad-bot" id="index-banner">
+  <div class="container">
+
+    <div class="row">
+
+      <!-- BEGIN "G" -->
+      <div class="col s12 m12 l3">
+        <div class="card verticaldata center-align">
+          <div class="card-title" style="font-size:16px; font-weight:bold;">
+            <div class="col s12">
+              <ul class="tabs">
+                <li class="tab col s6"><a class="active" href="#situations">Situations</a></li>
+                <li class="tab col s6"><a href="#custom">Custom</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-content left-align">
+            <br><br>
+            <div class="row">
+              <div id="situations" class="col s12">
+                <form action="#">
+                  <p>
+                    <input class="with-gap" name="group1" type="radio" id="situation1"/>
+                    <label for="situation1">Happiness</label>
+                  </p>
+                  <p>
+                    <input class="with-gap" name="group1" type="radio" id="situation2"/>
+                    <label for="situation2">Sleepiness</label>
+                  </p>
+                  <p>
+                    <input class="with-gap" name="group1" type="radio" id="situation3"/>
+                    <label for="situation3">Danger</label>
+                  </p>
+                </form>
+              </div>
+              <div id="custom" class="col s12">
+                <div id="customvals" style="overflow-y:scroll; height:41vh;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END "G" -->
+
+      <div class="col s12 m12 l6">
+        <div class="card verticaldata center-align">
+          <div class="card-content">
+            <video id="videl" muted="" style="width:100%; height:45vh;"></video>
+          </div>
+        </div>
+      </div>
+
+      <div class="col s12 m12 l3">
+        <div class="card verticaldata center-align">
+          <span class="card-title">Results</span>
+          <div class="card-content left-align">
+            <div id="imgs" style="overflow-y:scroll; height:41vh;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row">
+
+      <div id="wordCloudContainer" class="col s12 m12 l6">
+        <div class="card blockdata center-align" style="min-height: 33vh; margin-top: -2vh;">
+          <span class="card-title">Word Plot</span>
+          <div class="card-content left-align">
+            <div id="wordCloud" style="width:100%; height:100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col s12 m12 l6">
+        <div class="card blockdata center-align" style="min-height: 33vh; margin-top: -2vh;">
+          <span class="card-title">Graph</span>
+          <div class="card-content">Test</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
 </div>
-<p>Real-time analysis below</p>
-<div class="video">
-	<p>Video stream</p>
 
-    <video id="videl" muted></video>
+<script>
+  function updateWordCloud(words, weights) {
+    var wordList = [];
+    for(var i=0; i<words.length; i++) {
+      wordList.push({text: words[i], weight: weights[i]*100});
+    }
+    $("#wordCloud").jQCloud(wordList, {
+      width: $("#wordCloudContainer").width()-40,
+      height: $("#wordCloudContainer").height()-80
+    });
+  }
 
-
-<br><button onclick="sendPic()">Take Photo</button></div>
-<br />
-<div id="imgs"></script>
-</div><br><br>
-<div id="chartContainer" style="height: 300px; width:60%; color:#DCDCDC;"></div>
+  $('input:radio[name="group1"]').change(
+  function(){
+      if(this.checked) {
+        var setstr = "";
+        var valsC = [["knife",0.98],["hand",0.87],["knife",0.98],["hand",0.87],["knife",0.98],["hand",0.87],["knife",0.98],["hand",0.87]]; //GRAB VALUES FROM WEB APP BACKEND
+        for(var i=0; i<valsC.length; i++) {
+          setstr += '<div class="input-field col s6"><input disabled placeholder="Keyword" id="keyword'+i+'" type="text" value="'+valsC[i][0]+'"></div><div class="input-field col s6"><input disabled placeholder="Weight" id="weight'+i+'" type="text" value="'+valsC[i][1]+'"></div>';
+            //setstr += '<div class="input-field col s6"><input id="keyword'+i+'" type="text" value="'+valsC[i][0]+'"><label class="active" for="keyword'+i+'">Keyword</label></div>';
+            //setstr += '<div class="input-field col s6"><input id="weight'+i+'" type="text" value="'+valsC[i][1]+'"><label class="active" for="weight'+i+'">Weight</label></div>';
+        }
+        $("#customvals").html(setstr);
+        updateWordCloud(["man", "people", "adult", "offense", "one", "athlete", "dark", "indoors", "knife", "hand", "weapon", "strength", "force", "business", "competition", "danger", "foot", "conceptual", "side view", "wear"],[0.9926925301551819, 0.9910045862197876, 0.984666645526886, 0.9692342281341553, 0.9638503789901733, 0.9589204788208008, 0.9587680101394653, 0.9378172755241394, 0.9348297715187073, 0.9254631400108337, 0.9166908860206604, 0.914643406867981, 0.9140896797180176, 0.9048449993133545, 0.8954575061798096, 0.8875887393951416, 0.8640429973602295, 0.8363103270530701, 0.8337509632110596, 0.8264532089233398]);
+      }
+  });
+</script>
 
 
 

@@ -71,14 +71,10 @@
         <!-- END "G" -->
 
         <div class="col s12 m12 l6">
-          <div class="card blockdata center-align">
+          <div class="card verticaldata center-align">
             <div class="card-content">
               <video id="videl" muted="" style="width:100%; height:100%;"></video>
             </div>
-          </div>
-          <div class="card blockdata center-align">
-            <span class="card-title">Graph</span>
-            <div class="card-content">Test</div>
           </div>
         </div>
 
@@ -92,7 +88,8 @@
       </div>
 
       <div class="row">
-        <div id="wordCloudContainer" class="col s12 m12 l12">
+
+        <div id="wordCloudContainer" class="col s12 m12 l6">
           <div class="card blockdata center-align" style="min-height: 33vh; margin-top: -2vh;">
             <span class="card-title">Word Plot</span>
             <div class="card-content left-align">
@@ -100,6 +97,14 @@
             </div>
           </div>
         </div>
+
+        <div class="col s12 m12 l6">
+          <div class="card blockdata center-align" style="min-height: 33vh; margin-top: -2vh;">
+            <span class="card-title">Graph</span>
+            <div class="card-content">Test</div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -118,7 +123,7 @@
       }
       $("#wordCloud").jQCloud(wordList, {
         width: $("#wordCloudContainer").width()-40,
-        height: $("#wordCloudContainer").height()-60
+        height: $("#wordCloudContainer").height()-80
       });
     }
 
